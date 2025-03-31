@@ -1,0 +1,69 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E4777D00-2BF7-480C-BCDF-56A0A5C51776}|NodejsWebApp1\\NodejsWebApp1.esproj|c:\\users\\aduwi\\onedrive - ashesi university\\desktop\\capstone project\\application research 3\\nodejswebapp1\\nodejswebapp1\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{E4777D00-2BF7-480C-BCDF-56A0A5C51776}|NodejsWebApp1\\NodejsWebApp1.esproj|solutionrelative:nodejswebapp1\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E4777D00-2BF7-480C-BCDF-56A0A5C51776}|NodejsWebApp1\\NodejsWebApp1.esproj|c:\\users\\aduwi\\onedrive - ashesi university\\desktop\\capstone project\\application research 3\\nodejswebapp1\\nodejswebapp1\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E4777D00-2BF7-480C-BCDF-56A0A5C51776}|NodejsWebApp1\\NodejsWebApp1.esproj|solutionrelative:nodejswebapp1\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E4777D00-2BF7-480C-BCDF-56A0A5C51776}|NodejsWebApp1\\NodejsWebApp1.esproj|c:\\users\\aduwi\\onedrive - ashesi university\\desktop\\capstone project\\application research 3\\nodejswebapp1\\nodejswebapp1\\project_migration_log.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{E4777D00-2BF7-480C-BCDF-56A0A5C51776}|NodejsWebApp1\\NodejsWebApp1.esproj|solutionrelative:nodejswebapp1\\project_migration_log.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "server.js",
+              "DocumentMoniker": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\NodejsWebApp1\\server.js",
+              "RelativeDocumentMoniker": "NodejsWebApp1\\server.js",
+              "ToolTip": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\NodejsWebApp1\\server.js",
+              "RelativeToolTip": "NodejsWebApp1\\server.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-02-06T11:24:32.579Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "package.json",
+              "DocumentMoniker": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\NodejsWebApp1\\package.json",
+              "RelativeDocumentMoniker": "NodejsWebApp1\\package.json",
+              "ToolTip": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\NodejsWebApp1\\package.json",
+              "RelativeToolTip": "NodejsWebApp1\\package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-02-06T11:23:45.132Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PROJECT_MIGRATION_LOG.txt",
+              "DocumentMoniker": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\NodejsWebApp1\\PROJECT_MIGRATION_LOG.txt",
+              "RelativeDocumentMoniker": "NodejsWebApp1\\PROJECT_MIGRATION_LOG.txt",
+              "ToolTip": "C:\\Users\\aduwi\\OneDrive - Ashesi University\\Desktop\\Capstone Project\\Application Research 3\\NodejsWebApp1\\NodejsWebApp1\\PROJECT_MIGRATION_LOG.txt",
+              "RelativeToolTip": "NodejsWebApp1\\PROJECT_MIGRATION_LOG.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-02-06T11:21:31.536Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
