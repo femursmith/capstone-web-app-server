@@ -138,142 +138,142 @@ app.post('/auth/google', async (req, res) => {
 // Connect to your MQTT broker (adjust options and URL as needed)
 
 
-app.post("/upload", upload.single("file"), async (req, res) => {  
-  try {
-    // Extract required fields from the request body.
-    const { userId, cameraId, event } = req.body;
-    if (!userId || !cameraId || !event) {
-      return res.status(400).json({ error: "User ID, cameraId, and event are required" });
-    }
-
-    const user = await User.findOne({ googleId: userId });
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
-    }
-
-    // Look up the camera object (with cameraName) in the user's cameras array.
-    const cameraObj = user.cameras.find((cam) => cam.cameraId === cameraId);
-    if (!cameraObj) {
-      return res.status(403).json({ error: "Unauthorized camera" });
-    }
-
-    oauth2Client.setCredentials({
-      access_token: user.accessToken,
-      refresh_token: user.refreshToken,
-    });
-
-    // Refresh token if expired
-    if (new Date() > user.expiresAt) {
-      const { credentials } = await oauth2Client.refreshAccessToken();
-      user.accessToken = credentials.access_token;
-      // Update expiration (assuming 3600 seconds validity)
-      user.expiresAt = new Date(Date.now() + 3600 * 1000);
-      await user.save();
-    }
-
-    oauth2Client.setCredentials({ access_token: user.accessToken });
-    const drive = google.drive({ version: "v3", auth: oauth2Client });
-
-    // Helper function to get or create a folder by name (optionally within a parent folder)
-    async function getOrCreateFolder(folderName, parentId) {
-      let q = "name = '" + folderName + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-      if (parentId) {
-        q += " and '" + parentId + "' in parents";
+  app.post("/upload", upload.single("file"), async (req, res) => {  
+    try {
+      // Extract required fields from the request body.
+      const { userId, cameraId, event } = req.body;
+      if (!userId || !cameraId || !event) {
+        return res.status(400).json({ error: "User ID, cameraId, and event are required" });
       }
-      const folderList = await drive.files.list({
-        q,
-        fields: "files(id, name)",
+
+      const user = await User.findOne({ googleId: userId });
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      // Look up the camera object (with cameraName) in the user's cameras array.
+      const cameraObj = user.cameras.find((cam) => cam.cameraId === cameraId);
+      if (!cameraObj) {
+        return res.status(403).json({ error: "Unauthorized camera" });
+      }
+
+      oauth2Client.setCredentials({
+        access_token: user.accessToken,
+        refresh_token: user.refreshToken,
       });
-      if (folderList.data.files && folderList.data.files.length > 0) {
-        return folderList.data.files[0].id;
-      } else {
-        const fileMetadata = {
-          name: folderName,
-          mimeType: "application/vnd.google-apps.folder",
-        };
+
+      // Refresh token if expired
+      if (new Date() > user.expiresAt) {
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        user.accessToken = credentials.access_token;
+        // Update expiration (assuming 3600 seconds validity)
+        user.expiresAt = new Date(Date.now() + 3600 * 1000);
+        await user.save();
+      }
+
+      oauth2Client.setCredentials({ access_token: user.accessToken });
+      const drive = google.drive({ version: "v3", auth: oauth2Client });
+
+      // Helper function to get or create a folder by name (optionally within a parent folder)
+      async function getOrCreateFolder(folderName, parentId) {
+        let q = "name = '" + folderName + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
         if (parentId) {
-          fileMetadata.parents = [parentId];
+          q += " and '" + parentId + "' in parents";
         }
-        const folder = await drive.files.create({
-          requestBody: fileMetadata,
-          fields: "id",
+        const folderList = await drive.files.list({
+          q,
+          fields: "files(id, name)",
         });
-        return folder.data.id;
+        if (folderList.data.files && folderList.data.files.length > 0) {
+          return folderList.data.files[0].id;
+        } else {
+          const fileMetadata = {
+            name: folderName,
+            mimeType: "application/vnd.google-apps.folder",
+          };
+          if (parentId) {
+            fileMetadata.parents = [parentId];
+          }
+          const folder = await drive.files.create({
+            requestBody: fileMetadata,
+            fields: "id",
+          });
+          return folder.data.id;
+        }
       }
-    }
 
-    // Get or create "HomeSecurity" folder.
-    const homeFolderId = await getOrCreateFolder("HomeSecurity");
+      // Get or create "HomeSecurity" folder.
+      const homeFolderId = await getOrCreateFolder("HomeSecurity");
 
-    // Get current date string in "DD-M-YYYY" format.
-    let today = new Date();
-    let dateStr = today.getDate() + "-" + (today.getMonth() + 1) + "-" + today.getFullYear();
+      // Get current date string in "DD-M-YYYY" format.
+      let today = new Date();
+      let dateStr = today.getDate() + "-" + (today.getMonth() + 1) + "-" + today.getFullYear();
 
-    // Get or create subfolder for the current date within HomeSecurity.
-    const dateFolderId = await getOrCreateFolder(dateStr, homeFolderId);
+      // Get or create subfolder for the current date within HomeSecurity.
+      const dateFolderId = await getOrCreateFolder(dateStr, homeFolderId);
 
-    // Upload file into the date folder.
-    const fileMetadata = {
-      name: req.file.originalname,
-      parents: [dateFolderId],
-    };
-    const media = {
-      mimeType: req.file.mimetype,
-      body: fs.createReadStream(req.file.path),
-    };
+      // Upload file into the date folder.
+      const fileMetadata = {
+        name: req.file.originalname,
+        parents: [dateFolderId],
+      };
+      const media = {
+        mimeType: req.file.mimetype,
+        body: fs.createReadStream(req.file.path),
+      };
 
-    const driveResponse = await drive.files.create({
-      requestBody: fileMetadata,
-      media: media,
-      fields: "id",
-    });
-
-    fs.unlinkSync(req.file.path); // Cleanup temporary file
-
-    // Create a file record with fileId, current time, cameraId, and event.
-    const newFileRecord = {
-      fileId: driveResponse.data.id,
-      time: new Date(),
-      cameraId,
-      event,
-    };
-
-    // Update the user's uploads: check if an entry for today's date exists.
-    const dateEntryIndex = user.uploads.findIndex(entry => entry.date === dateStr);
-    if (dateEntryIndex >= 0) {
-      user.uploads[dateEntryIndex].files.push(newFileRecord);
-    } else {
-      user.uploads.push({
-        date: dateStr,
-        files: [newFileRecord],
+      const driveResponse = await drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: "id",
       });
+
+      fs.unlinkSync(req.file.path); // Cleanup temporary file
+
+      // Create a file record with fileId, current time, cameraId, and event.
+      const newFileRecord = {
+        fileId: driveResponse.data.id,
+        time: new Date(),
+        cameraId,
+        event,
+      };
+
+      // Update the user's uploads: check if an entry for today's date exists.
+      const dateEntryIndex = user.uploads.findIndex(entry => entry.date === dateStr);
+      if (dateEntryIndex >= 0) {
+        user.uploads[dateEntryIndex].files.push(newFileRecord);
+      } else {
+        user.uploads.push({
+          date: dateStr,
+          files: [newFileRecord],
+        });
+      }
+
+      await user.save();
+
+      // Build the response object (note: returning cameraName instead of cameraId)
+      const responseData = { 
+        fileId: driveResponse.data.id, 
+        time: newFileRecord.time, 
+        cameraName: cameraObj.cameraName, 
+        event 
+      };
+
+      // Check that the client is connected before publishing
+      if (mqttClient.connected) {
+        mqttClient.publish(`${userId}/notification`, JSON.stringify(responseData));
+        console.log(`Published to ${userId}/notification`);
+      } else {
+        console.error("MQTT client not connected. Unable to publish.");
+      }
+
+      // Also send the response back to the client.
+      res.json(responseData);
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Failed to upload file" });
     }
-
-    await user.save();
-
-    // Build the response object (note: returning cameraName instead of cameraId)
-    const responseData = { 
-      fileId: driveResponse.data.id, 
-      time: newFileRecord.time, 
-      cameraName: cameraObj.cameraName, 
-      event 
-    };
-
-    // Check that the client is connected before publishing
-    if (mqttClient.connected) {
-      mqttClient.publish(`${userId}/notification`, JSON.stringify(responseData));
-      console.log(`Published to ${userId}/notification`);
-    } else {
-      console.error("MQTT client not connected. Unable to publish.");
-    }
-
-    // Also send the response back to the client.
-    res.json(responseData);
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ error: "Failed to upload file" });
-  }
-});
+  });
   
   
   
@@ -571,6 +571,121 @@ cron.schedule("0 0 * * 1", async () => {
       console.log("Weekly cleanup task completed successfully.");
     } catch (error) {
       console.error("Weekly cleanup task error:", error);
+    }
+  });
+
+
+  app.post("/add-face", upload.single("file"), async (req, res) => {
+    try {
+      // Extract required fields from the request body.
+      const { userId, cameraId, faceName } = req.body;
+      if (!userId || !cameraId || !faceName) {
+        return res.status(400).json({ error: "User ID, cameraId, and faceName are required" });
+      }
+  
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+  
+      const user = await User.findOne({ googleId: userId });
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+  
+      // Look up the camera object (with cameraName) in the user's cameras array.
+      const cameraObj = user.cameras.find((cam) => cam.cameraId === cameraId);
+      if (!cameraObj) {
+        return res.status(403).json({ error: "Unauthorized camera" }); // Even for faces, we are keeping camera authorization as requested
+      }
+  
+  
+      oauth2Client.setCredentials({
+        access_token: user.accessToken,
+        refresh_token: user.refreshToken,
+      });
+  
+      // Refresh token if expired
+      if (new Date() > user.expiresAt) {
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        user.accessToken = credentials.access_token;
+        // Update expiration (assuming 3600 seconds validity)
+        user.expiresAt = new Date(Date.now() + 3600 * 1000);
+        await user.save();
+      }
+  
+      oauth2Client.setCredentials({ access_token: user.accessToken });
+      const drive = google.drive({ version: "v3", auth: oauth2Client });
+  
+      // Helper function to get or create a folder by name (optionally within a parent folder)
+      async function getOrCreateFolder(folderName, parentId) {
+        let q = "name = '" + folderName + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+        if (parentId) {
+          q += " and '" + parentId + "' in parents";
+        }
+        const folderList = await drive.files.list({
+          q,
+          fields: "files(id, name)",
+        });
+        if (folderList.data.files && folderList.data.files.length > 0) {
+          return folderList.data.files[0].id;
+        } else {
+          const fileMetadata = {
+            name: folderName,
+            mimeType: "application/vnd.google-apps.folder",
+          };
+          if (parentId) {
+            fileMetadata.parents = [parentId];
+          }
+          const folder = await drive.files.create({
+            requestBody: fileMetadata,
+            fields: "id",
+          });
+          return folder.data.id;
+        }
+      }
+  
+      // Get or create "HomeSecurity" folder.
+      const homeFolderId = await getOrCreateFolder("HomeSecurity");
+  
+      // Get or create "faces" folder inside "HomeSecurity"
+      const facesFolderId = await getOrCreateFolder("faces", homeFolderId);
+  
+      // Upload file into the "faces" folder.
+      const fileMetadata = {
+        name: req.file.originalname, // You might want to rename it for better organization
+        parents: [facesFolderId],
+      };
+      const media = {
+        mimeType: req.file.mimetype,
+        body: fs.createReadStream(req.file.path),
+      };
+  
+      const driveResponse = await drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: "id",
+      });
+  
+      fs.unlinkSync(req.file.path); // Cleanup temporary file
+  
+      // Add the face to the user's faces array in the database
+      user.faces.push({ faceName: faceName, fileId: driveResponse.data.id });
+      await user.save();
+  
+      // Build the response object
+      const responseData = {
+        faceName: faceName,
+        fileId: driveResponse.data.id,
+        message: "Face added successfully",
+      };
+
+      console.log(`Face added: ${faceName}, fileId: ${driveResponse.data.id}`);
+  
+      // Send the response back to the client.
+      res.json(responseData);
+    } catch (error) {
+      console.error("Add face error:", error);
+      res.status(500).json({ error: "Failed to add face" });
     }
   });
 

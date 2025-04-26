@@ -13,13 +13,18 @@ const uploadEntrySchema = new mongoose.Schema({
   files: { type: [fileSchema], default: [] }
 });
 
+const faceSchema = new mongoose.Schema({
+  faceName: { type: String, required: true },
+  fileId: { type: String, required: true }
+});
+
 const userSchema = new mongoose.Schema({
   googleId: { type: String, required: true },
   accessToken: String,
   refreshToken: String,
   expiresAt: Date,
   // Now cameras is an array of objects with both cameraId and cameraName.
-  cameras: { 
+  cameras: {
     type: [
       {
         cameraId: { type: String, required: true },
@@ -28,10 +33,10 @@ const userSchema = new mongoose.Schema({
     ],
     default: []
   },
-  uploads: { type: [uploadEntrySchema], default: [] }
+  uploads: { type: [uploadEntrySchema], default: [] },
+  faces: { type: [faceSchema], default: [] } // New field for faces
 });
 
 module.exports = mongoose.model("User", userSchema);
-
 
 
