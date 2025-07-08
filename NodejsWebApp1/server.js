@@ -508,72 +508,71 @@ app.get("/download-files", async (req, res) => {
   });
   
   
-// Runs at 00:00 every Monday
-cron.schedule("0 0 * * 1", async () => {
-    console.log("Weekly cleanup task started...");
-  
-    try {
-      // Find all users
-      const allUsers = await User.find({});
-      for (const user of allUsers) {
-        // Refresh token if needed
-        if (new Date() > user.expiresAt) {
-          const { credentials } = await oauth2Client.refreshAccessToken();
-          user.accessToken = credentials.access_token;
-          // Update expiration if needed
-          user.expiresAt = new Date(Date.now() + 3600 * 1000);
-          await user.save();
-        }
-  
-        // Set credentials for the Drive client
-        oauth2Client.setCredentials({
-          access_token: user.accessToken,
-          refresh_token: user.refreshToken,
-        });
-        const drive = google.drive({ version: "v3", auth: oauth2Client });
-  
-        // We'll collect the fileIds to delete from user.uploads
-        const fileIdsToDelete = [];
-  
-        // Also, we’ll remove them from the user’s uploads array
-        // but we need to do it carefully to avoid mutating while iterating
-        user.uploads.forEach((uploadEntry) => {
-          // Filter out non-retained files
-          uploadEntry.files = uploadEntry.files.filter((file) => {
-            if (!file.retain) {
-              // Mark file for deletion
-              fileIdsToDelete.push(file.fileId);
-              return false; // remove from user
-            }
-            return true; // keep
-          });
-        });
-  
-        // Now remove empty upload entries if needed
-        user.uploads = user.uploads.filter(
-          (entry) => entry.files.length > 0
-        );
-  
-        // Delete from Drive
-        for (const fileId of fileIdsToDelete) {
-          try {
-            await drive.files.delete({ fileId });
-            console.log(`Deleted fileId: ${fileId} from Drive`);
-          } catch (err) {
-            console.error(`Error deleting file ${fileId}:`, err);
-          }
-        }
-  
-        // Save user
-        await user.save();
-      }
-  
-      console.log("Weekly cleanup task completed successfully.");
-    } catch (error) {
-      console.error("Weekly cleanup task error:", error);
-    }
-  });
+// // Runs at 00:00 every Monday
+// const weeklyCleanupTask = async () => {
+//   console.log("Weekly cleanup task started...");
+//   // ... (the entire logic inside your current cron.schedule callback)
+//   // Make sure to use the global `oauth2Client` and `google` instances defined above.
+//   try {
+//       const allUsers = await User.find({});
+//       for (const user of allUsers) {
+//           // Refresh token if needed
+//           if (new Date() > user.expiresAt) {
+//               console.log(`Refreshing token for user ${user.googleId}`);
+             
+//               oauth2Client.setCredentials({ refresh_token: user.refreshToken }); // Important for refresh
+//               const { credentials } = await oauth2Client.refreshAccessToken();
+//               user.accessToken = credentials.access_token;
+//               if (credentials.expiry_date) { // Google might return expiry_date
+//                   user.expiresAt = new Date(credentials.expiry_date);
+//               } else {
+//                   user.expiresAt = new Date(Date.now() + 3500 * 1000); // Fallback, 3500s not 3600 to be safe
+//               }
+//               await user.save();
+//               console.log(`Token refreshed for user ${user.googleId}`);
+//           }
 
+//           // Set credentials for the Drive client
+//           oauth2Client.setCredentials({
+//               access_token: user.accessToken,
+//               // refresh_token: user.refreshToken, // Already set if refreshed, or should be present
+//           });
+//           const drive = google.drive({ version: "v3", auth: oauth2Client });
+
+//           const fileIdsToDelete = [];
+//           user.uploads.forEach((uploadEntry) => {
+//               uploadEntry.files = uploadEntry.files.filter((file) => {
+//                   if (!file.retain) {
+//                       fileIdsToDelete.push(file.fileId);
+//                       return false;
+//                   }
+//                   return true;
+//               });
+//           });
+
+//           user.uploads = user.uploads.filter(
+//               (entry) => entry.files.length > 0
+//           );
+
+//           for (const fileId of fileIdsToDelete) {
+//               try {
+//                   await drive.files.delete({ fileId });
+//                   console.log(`Deleted fileId: ${fileId} from Drive for user ${user.googleId}`);
+//               } catch (err) {
+//                   console.error(`Error deleting file ${fileId} for user ${user.googleId}:`, err.message);
+//               }
+//           }
+//           await user.save();
+//           console.log(`User ${user.googleId} processed.`);
+//       }
+//       console.log("Weekly cleanup task completed successfully.");
+//   } catch (error) {
+//       console.error("Weekly cleanup task error:", error);
+//   }
+// };
+
+// Schedule the named function
+// cron.schedule("0 0 * * 1", weeklyCleanupTask);
 
   app.post("/add-face", upload.single("file"), async (req, res) => {
     try {
@@ -764,6 +763,8 @@ app.post("/retain-file", async (req, res) => {
     }
   });
 
-  
+
+ // module.exports = { app, weeklyCleanupTask };
+
 const PORT = 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
